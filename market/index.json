@@ -1,0 +1,52 @@
+{
+  "format": 1,
+  "title": {
+    "en": "kasshuang DSH plugins",
+    "zh": "kasshuang 的 DSH 插件"
+  },
+  "description": {
+    "en": "A small, dependency-free index of DeepSeek Harness plugins.",
+    "zh": "一个小而独立的 DeepSeek Harness 插件索引。"
+  },
+  "metadata": {
+    "categories": {
+      "account": { "title": { "en": "Account & usage", "zh": "账号与用量" } }
+    },
+    "labels": {
+      "sidebar": { "title": { "en": "Sidebar", "zh": "侧栏" } },
+      "local-first": { "title": { "en": "Local first", "zh": "数据留在本机" } }
+    }
+  },
+  "plugins": [
+    {
+      "name": "dsh-plugin-balance-usage",
+      "title": {
+        "en": "Balance & usage",
+        "zh": "余额与用量"
+      },
+      "description": {
+        "en": "A sidebar entry with your DeepSeek balance and token usage, a 14-day chart, per-model grouping, and the official usage page opened inside the app.",
+        "zh": "侧栏底部显示账户余额与 Token 用量，面板内含近 14 天走势、按模型分组与主线设置，官方用量页可在应用内直接打开。"
+      },
+      "icon": "icons/dsh-plugin-balance-usage.svg",
+      "author": "kasshuang",
+      "homepage": "https://github.com/kasshuang/dsh-plugin-balance-usage",
+      "repository": {
+        "url": "https://github.com/kasshuang/dsh-plugin-balance-usage"
+      },
+      "metadata": {
+        "category": "account",
+        "keywords": ["balance", "usage", "tokens", "sidebar", "余额", "用量"],
+        "labels": ["sidebar", "local-first"]
+      },
+      "versions": [
+        {
+          "version": "1.0.0",
+          "publishTimestamp": 1795142239,
+          "source": { "type": "npm" },
+          "engines": { "dsh": ">=0.2.2-rc.1 <0.3.0-0" }
+        }
+      ]
+    }
+  ]
+}

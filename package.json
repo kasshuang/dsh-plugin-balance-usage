@@ -1,0 +1,73 @@
+{
+  "name": "dsh-plugin-balance-usage",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "DSH 侧栏余额与用量：在左侧栏底部显示 DeepSeek 账户余额与 Token 用量，面板内可查看近 14 天走势、按运营商/模型折叠、设置主线，并直接在应用内打开官方用量页。",
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "dsh",
+    "cordis",
+    "balance",
+    "usage",
+    "tokens",
+    "sidebar",
+    "余额",
+    "用量"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "kasshuang"
+  },
+  "homepage": "https://github.com/kasshuang/dsh-plugin-balance-usage#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kasshuang/dsh-plugin-balance-usage.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kasshuang/dsh-plugin-balance-usage/issues"
+  },
+  "icon": "icon.svg",
+  "main": "./index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "docs",
+    "icon.svg",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "dsh": ">=0.2.2-rc.1 <0.3.0-0",
+    "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-api-remotes", "@deepseek-ai/dsh-client-locale"]
+    },
+    "compatibility": {
+      "dsh": ">=0.2.2-rc.1 <0.3.0-0",
+      "dshReleases": {
+        "0.2.2-rc.3": "compatible"
+      }
+    }
+  }
+}

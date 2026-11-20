@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Balance & usage",
+    "description": "Shows the DeepSeek account balance and token usage at the sidebar foot, with a shortcut to the official usage page.",
+    "detail": "Adds an entry at the sidebar foot that shows the account balance and today's token usage. Clicking it opens a panel with lifetime usage, a 14-day trend, and collapsible groups per provider and model; any model can be promoted to \"main\" and drives the numbers shown in the sidebar. The button at the bottom of the panel opens the official token usage page. The balance comes from the DeepSeek platform account API; usage is aggregated from local session logs by this plugin and never leaves the machine."
+  }
+}
