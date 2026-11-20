@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-balance-usage",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "DSH 侧栏余额与用量：在左侧栏底部显示 DeepSeek 账户余额与 Token 用量，面板内可查看近 14 天走势、按运营商/模型折叠、设置主线，并直接在应用内打开官方用量页。",
   "keywords": [
@@ -61,7 +61,10 @@
     "client": {
       "platform": "web",
       "immediately": true,
-      "inject": ["@deepseek-ai/dsh-api-remotes", "@deepseek-ai/dsh-client-locale"]
+      "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-locale"
+      ]
     },
     "compatibility": {
       "dsh": ">=0.2.2-rc.1 <0.3.0-0 || >=0.2.3-rc.1 <0.3.0-0 || >=0.2.4-rc.1 <0.3.0-0",

@@ -26,6 +26,7 @@ window.__ModuleLoader__.load({
     }
 
     const ROUTE = '/plugins/balance-usage/summary'
+    const PREFS_ROUTE = '/plugins/balance-usage/prefs'
     const FALLBACK_USAGE_URL = 'https://platform.deepseek.com/usage'
     const KEY_PRIMARY = 'dsh.balance-usage.primary'
     const KEY_COLLAPSED = 'dsh.balance-usage.collapsed'
@@ -265,6 +266,7 @@ window.__ModuleLoader__.load({
       } catch {
         /* storage may be unavailable */
       }
+      pushPrefs({ primary: value })
     }
 
     function readCollapsed() {
@@ -283,6 +285,42 @@ window.__ModuleLoader__.load({
         globalThis.localStorage?.setItem(KEY_COLLAPSED, JSON.stringify(value))
       } catch {
         /* ignore */
+      }
+      pushPrefs({ collapsed: value })
+    }
+
+    /* The Host keeps the same two settings in `~/.dsh/plugin-settings/balance-usage.json`
+       so the profile-sync plugin can carry them to another machine. localStorage stays
+       as the offline fallback. */
+    async function pushPrefs(patch) {
+      try {
+        const values = {
+          primary: patch.primary !== undefined ? patch.primary : state.primary,
+          collapsed: patch.collapsed !== undefined ? patch.collapsed : state.collapsed,
+        }
+        await fetch(PREFS_ROUTE, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', accept: 'application/json' },
+          body: JSON.stringify({ values }),
+          cache: 'no-store',
+        })
+      } catch {
+        /* the Host route may be absent in an older install */
+      }
+    }
+
+    async function readPrefs() {
+      try {
+        const options = { headers: { accept: 'application/json' }, cache: 'no-store' }
+        if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+          options.signal = AbortSignal.timeout(4000)
+        }
+        const response = await fetch(PREFS_ROUTE, options)
+        if (!response.ok) return null
+        const body = await response.json()
+        return body && body.ok === true && body.values ? body.values : null
+      } catch {
+        return null
       }
     }
 
@@ -1315,6 +1353,38 @@ window.__ModuleLoader__.load({
         ctx.slots.inject('shell.overlay', () =>
           ctx.slots.register({ name: 'shell.overlay', id: 'balance-usage-panel', order: 40 }, Panel),
         )
+
+        /* Settings are authoritative on the Host; localStorage is only the fallback
+           for a build whose Host half predates the prefs route. */
+        ctx.effect(() => {
+          let alive = true
+          readPrefs()
+            .then((values) => {
+              if (!alive || !values) return
+              const patch = {}
+              if (values.primary && typeof values.primary.provider === 'string') {
+                patch.primary = values.primary
+                try {
+                  globalThis.localStorage?.setItem(KEY_PRIMARY, JSON.stringify(values.primary))
+                } catch {
+                  /* ignore */
+                }
+              }
+              if (Array.isArray(values.collapsed)) {
+                patch.collapsed = values.collapsed
+                try {
+                  globalThis.localStorage?.setItem(KEY_COLLAPSED, JSON.stringify(values.collapsed))
+                } catch {
+                  /* ignore */
+                }
+              }
+              if (Object.keys(patch).length > 0) setState(patch)
+            })
+            .catch(() => {})
+          return () => {
+            alive = false
+          }
+        })
 
         ctx.effect(() => {
           const warm = setTimeout(() => load(ctx).catch(() => {}), 1_500)

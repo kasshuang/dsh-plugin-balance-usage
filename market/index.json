@@ -10,11 +10,26 @@
   },
   "metadata": {
     "categories": {
-      "account": { "title": { "en": "Account & usage", "zh": "账号与用量" } }
+      "account": {
+        "title": {
+          "en": "Account & usage",
+          "zh": "账号与用量"
+        }
+      }
     },
     "labels": {
-      "sidebar": { "title": { "en": "Sidebar", "zh": "侧栏" } },
-      "local-first": { "title": { "en": "Local first", "zh": "数据留在本机" } }
+      "sidebar": {
+        "title": {
+          "en": "Sidebar",
+          "zh": "侧栏"
+        }
+      },
+      "local-first": {
+        "title": {
+          "en": "Local first",
+          "zh": "数据留在本机"
+        }
+      }
     }
   },
   "plugins": [
@@ -36,15 +51,39 @@
       },
       "metadata": {
         "category": "account",
-        "keywords": ["balance", "usage", "tokens", "sidebar", "余额", "用量"],
-        "labels": ["sidebar", "local-first"]
+        "keywords": [
+          "balance",
+          "usage",
+          "tokens",
+          "sidebar",
+          "余额",
+          "用量"
+        ],
+        "labels": [
+          "sidebar",
+          "local-first"
+        ]
       },
       "versions": [
         {
+          "version": "1.0.1",
+          "publishTimestamp": 1795149076,
+          "source": {
+            "type": "npm"
+          },
+          "engines": {
+            "dsh": ">=0.2.2-rc.1 <0.3.0-0 || >=0.2.3-rc.1 <0.3.0-0 || >=0.2.4-rc.1 <0.3.0-0"
+          }
+        },
+        {
           "version": "1.0.0",
           "publishTimestamp": 1795142239,
-          "source": { "type": "npm" },
-          "engines": { "dsh": ">=0.2.2-rc.1 <0.3.0-0 || >=0.2.3-rc.1 <0.3.0-0 || >=0.2.4-rc.1 <0.3.0-0" }
+          "source": {
+            "type": "npm"
+          },
+          "engines": {
+            "dsh": ">=0.2.2-rc.1 <0.3.0-0 || >=0.2.3-rc.1 <0.3.0-0 || >=0.2.4-rc.1 <0.3.0-0"
+          }
         }
       ]
     }

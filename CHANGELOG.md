@@ -1,5 +1,10 @@
 # 更新日志
 
+## 1.0.1
+
+- 「主线」与折叠分组从浏览器 localStorage 迁到 `~/.dsh/plugin-settings/balance-usage.json`（Host 侧读写），配合 `dsh-plugin-profile-sync` 可在换机后沿用同一套设置；localStorage 保留为离线兜底。
+- 新增 Host 路由 `GET/POST /plugins/balance-usage/prefs`，与用量路由同样只接受同源请求。
+
 ## 1.0.0
 
 首个公开版本。

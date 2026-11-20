@@ -14,12 +14,14 @@
  * `webServer` route is the supported way to hand Host-side numbers to the
  * Client too.
  */
-import { readdir, readFile, stat } from 'node:fs/promises'
+import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import zlib from 'node:zlib'
 
 const ROUTE = '/plugins/balance-usage/summary'
+const PREFS_ROUTE = '/plugins/balance-usage/prefs'
+const PREFS_NS = 'balance-usage'
 const LOG_FILE = 'session.v4.jsonl.zstd'
 const SCAN_TTL_MS = 20_000
 const MAX_FILE_BYTES = 64 * 1024 * 1024
@@ -203,10 +205,53 @@ function aggregateLog(text) {
  * Scanning
  * ------------------------------------------------------------------ */
 
-function sessionsRoot() {
-  const home = process.env.DSH_HOME || path.join(os.homedir(), '.dsh')
-  return path.join(home, 'sessions')
+function dshHome() {
+  return process.env.DSH_HOME || path.join(os.homedir(), '.dsh')
 }
+
+function sessionsRoot() {
+  return path.join(dshHome(), 'sessions')
+}
+
+/* Settings live in the shared, profile-sync friendly location so another
+   machine can align them: `~/.dsh/plugin-settings/<ns>.json` = {updatedAt, values}. */
+function prefsFile() {
+  return path.join(dshHome(), 'plugin-settings', `${PREFS_NS}.json`)
+}
+
+async function readPrefs() {
+  try {
+    const raw = await readFile(prefsFile(), 'utf8')
+    const parsed = JSON.parse(raw.replace(/^\uFEFF/, ''))
+    const values = parsed && typeof parsed === 'object' ? parsed.values : null
+    if (!values || typeof values !== 'object') return {}
+    const clean = {}
+    if (values.primary && typeof values.primary.provider === 'string' && typeof values.primary.model === 'string') {
+      clean.primary = { provider: values.primary.provider, model: values.primary.model }
+    }
+    if (Array.isArray(values.collapsed)) {
+      clean.collapsed = values.collapsed.filter((item) => typeof item === 'string')
+    }
+    return clean
+  } catch {
+    return {}
+  }
+}
+
+async function writePrefs(values) {
+  const clean = {}
+  if (values.primary && typeof values.primary.provider === 'string' && typeof values.primary.model === 'string') {
+    clean.primary = { provider: values.primary.provider, model: values.primary.model }
+  }
+  if (Array.isArray(values.collapsed)) {
+    clean.collapsed = values.collapsed.filter((item) => typeof item === 'string')
+  }
+  const target = prefsFile()
+  await mkdir(path.dirname(target), { recursive: true })
+  await writeFile(target, `${JSON.stringify({ updatedAt: Date.now(), values: clean }, null, 2)}\n`, 'utf8')
+  return clean
+}
+
 
 async function listLogFiles(root) {
   const files = []
@@ -358,6 +403,46 @@ function json(body, status = 200) {
   })
 }
 
+/* Web resource routes only accept GET/HEAD, and saving preferences needs POST, so
+   the prefs route is a plain Node handler with the same origin rules. */
+function sameOriginNode(request) {
+  const site = request.headers['sec-fetch-site']
+  if (site && site !== 'same-origin' && site !== 'none') return false
+
+  const origin = request.headers.origin
+  if (origin) {
+    try {
+      if (new URL(origin).host !== request.headers.host) return false
+    } catch {
+      return false
+    }
+  }
+
+  return true
+}
+
+function sendNodeJson(response, body, status = 200) {
+  const payload = JSON.stringify(body)
+  response.writeHead(status, {
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-store',
+    'content-length': Buffer.byteLength(payload),
+  })
+  response.end(payload)
+}
+
+async function readNodeJsonBody(request, limit = 128 * 1024) {
+  const chunks = []
+  let total = 0
+  for await (const chunk of request) {
+    total += chunk.length
+    if (total > limit) throw new Error('payload too large')
+    chunks.push(chunk)
+  }
+  if (total === 0) return {}
+  return JSON.parse(Buffer.concat(chunks).toString('utf8').replace(/^\uFEFF/, ''))
+}
+
 export const name = 'balance-usage'
 export const inject = ['webServer']
 
@@ -429,6 +514,35 @@ export function apply(ctx) {
         },
       }),
     'balance-usage: summary route',
+  )
+
+  /* Preferences (primary provider/model + collapsed groups). Kept in the Host
+     rather than localStorage so they survive a new machine once the profile-sync
+     plugin pushes/pulls `~/.dsh/plugin-settings/balance-usage.json`. */
+  ctx.effect(
+    () =>
+      ctx.webServer.register({
+        kind: 'exact',
+        path: PREFS_ROUTE,
+        handler: async (request, response) => {
+          if (!sameOriginNode(request)) return sendNodeJson(response, { ok: false, error: 'forbidden' }, 403)
+          try {
+            if (request.method === 'POST') {
+              const body = await readNodeJsonBody(request)
+              const values = await writePrefs(body?.values ?? body ?? {})
+              return sendNodeJson(response, { ok: true, values })
+            }
+            if (request.method !== 'GET' && request.method !== 'HEAD') {
+              return sendNodeJson(response, { ok: false, error: 'method not allowed' }, 405)
+            }
+            return sendNodeJson(response, { ok: true, values: await readPrefs() })
+          } catch (error) {
+            ctx.logger?.warn?.(error)
+            return sendNodeJson(response, { ok: false, error: String(error?.message ?? error) }, 500)
+          }
+        },
+      }),
+    'balance-usage: prefs route',
   )
 
   /* Warm the cache once so the first open of the panel is instant. */
