@@ -48,7 +48,7 @@
     "CHANGELOG.md"
   ],
   "engines": {
-    "dsh": ">=0.2.2-rc.1 <0.3.0-0",
+    "dsh": ">=0.2.2-rc.1 <0.3.0-0 || >=0.2.3-rc.1 <0.3.0-0 || >=0.2.4-rc.1 <0.3.0-0",
     "node": ">=22"
   },
   "publishConfig": {
@@ -64,7 +64,7 @@
       "inject": ["@deepseek-ai/dsh-api-remotes", "@deepseek-ai/dsh-client-locale"]
     },
     "compatibility": {
-      "dsh": ">=0.2.2-rc.1 <0.3.0-0",
+      "dsh": ">=0.2.2-rc.1 <0.3.0-0 || >=0.2.3-rc.1 <0.3.0-0 || >=0.2.4-rc.1 <0.3.0-0",
       "dshReleases": {
         "0.2.2-rc.3": "compatible"
       }
