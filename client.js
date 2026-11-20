@@ -32,7 +32,12 @@ window.__ModuleLoader__.load({
     const PANEL_ID = 'dbu-panel'
     const PANEL_TITLE_ID = 'dbu-panel-title'
     const PLATFORM_BACK_ID = 'dbu-platform-back'
-    const REFRESH_MS = 180_000
+    /* The footer numbers are glanceable, so they refresh on their own: often while the
+       panel is open, less often while it is closed, and immediately when the window
+       comes back to the foreground. */
+    const REFRESH_OPEN_MS = 15_000
+    const REFRESH_IDLE_MS = 30_000
+    const TICK_MS = 5_000
     const STALE_MS = 8_000
 
     /* ---------------------------------------------------------------- *
@@ -1313,13 +1318,29 @@ window.__ModuleLoader__.load({
 
         ctx.effect(() => {
           const warm = setTimeout(() => load(ctx).catch(() => {}), 1_500)
+
+          const due = () => Date.now() - state.updatedAt >= (state.open ? REFRESH_OPEN_MS : REFRESH_IDLE_MS)
+
           timer = setInterval(() => {
-            if (state.open) load(ctx).catch(() => {})
-          }, REFRESH_MS)
+            if (due()) load(ctx).catch(() => {})
+          }, TICK_MS)
+
+          /* Coming back to the app should never show numbers from the last time it was
+             in front, even if the interval has not elapsed yet. */
+          const wake = () => {
+            if (document.visibilityState === 'hidden') return
+            if (Date.now() - state.updatedAt < 2_000) return
+            load(ctx, { force: true }).catch(() => {})
+          }
+          window.addEventListener('focus', wake)
+          document.addEventListener('visibilitychange', wake)
+
           return () => {
             clearTimeout(warm)
             if (timer) clearInterval(timer)
             timer = null
+            window.removeEventListener('focus', wake)
+            document.removeEventListener('visibilitychange', wake)
           }
         })
       },
